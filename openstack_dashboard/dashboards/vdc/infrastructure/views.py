@@ -79,6 +79,55 @@ class JSONView(View):
         #self.add_resource_url('horizon:project:instances:detail', data)
         return data
 
+    def _get_networks(self, request):
+        # Get neutron data
+        # if we didn't specify tenant_id, all networks shown as admin user.
+        # so it is need to specify the networks. However there is no need to
+        # specify tenant_id for subnet. The subnet which belongs to the public
+        # network is needed to draw subnet information on public network.
+        try:
+            neutron_networks = api.neutron.network_list_for_tenant(
+                request,
+                request.user.tenant_id)
+        except Exception:
+            neutron_networks = []
+        networks = [{'name': network.name,
+                     'id': network.id,
+                     'subnets': [{'cidr': subnet.cidr}
+                                 for subnet in network.subnets],
+                     'router:external': network['router:external']}
+                    for network in neutron_networks]
+        self.add_resource_url('horizon:project:networks:detail',
+                              networks)
+
+        # Add public networks to the networks list
+        if self.is_router_enabled:
+            try:
+                neutron_public_networks = api.neutron.network_list(
+                    request,
+                    **{'router:external': True})
+            except Exception:
+                neutron_public_networks = []
+            my_network_ids = [net['id'] for net in networks]
+            for publicnet in neutron_public_networks:
+                if publicnet.id in my_network_ids:
+                    continue
+                try:
+                    subnets = [{'cidr': subnet.cidr}
+                               for subnet in publicnet.subnets]
+                except Exception:
+                    subnets = []
+                networks.append({
+                    'name': publicnet.name,
+                    'id': publicnet.id,
+                    'subnets': subnets,
+                    'router:external': publicnet['router:external']})
+
+        return sorted(networks,
+                      key=lambda x: x.get('router:external'),
+                      reverse=True)
+
+
     def get(self, request, *args, **kwargs):
         data = {'servers': self._get_servers(request)}
         json_string = json.dumps(data, ensure_ascii=False)
