@@ -137,22 +137,37 @@ svg#topology_canvas g.loading .instance_normal .icon_bg {
 }
 #infra_template .name,
 #infra_template .status,
-#infra_template .uuid {
+#infra_template .label {
   text-anchor: middle;
   fill: #333;
   font-size: 12px;
 }
 #infra_template .name,
-#infra_template .status {
-  font-size: 20px;
+#infra_template .status,
+#infra_template .label {
+  font-size: 14px;
+}
+#infra_template .label {
+  fill: #fff;
+}
+#infra_template .texts circle {
+  fill: #5cb85c;
+}
+#infra_template .texts circle.ERROR {
+  fill: #d9534f;
+}
+#infra_template .texts .texts_bg {
+  fill: #333;
 }
 </style>
 
-<svg width="430" height="400" id="infra_template">
-  <rect class="frame" x="10" y="5" rx="6" ry="6" width="400" height="100"></rect>
+<svg width="430" height="130" id="infra_template">
+  <rect class="frame" x="10" y="10" rx="6" ry="6" width="120" height="80"></rect>
   <g class="texts">
-    <text class="name" x="210" y="22"></text>
-    <text class="status" x="210" y="46"></text>
-    <text class="uuid" x="210" y="70"></text>
+    <circle r="5" cx="25" cy="27" class="ERROR"></circle>
+    <rect class="texts_bg" x="12" y="60" width="116" height="28"></rect>
+    <text class="name" x="70" y="32"></text>
+    <text class="status" x="70" y="52"></text>
+    <text class="label" x="70" y="80">Instance</text>
   </g>
 </svg>

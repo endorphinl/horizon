@@ -23,11 +23,48 @@
 <script type="text/javascript">
 $(document).ready(function(){
   $.getJSON($('#networktopology').data('networktopology') + '?' + $.now(), function(data) {
-    servers                 = data.servers;
-    inst_container_width    = 420;
-    inst_container_midpoint = 210;
-    width_padding           = 10;
+    servers               = data.servers;
+    inst_container_height = 100;
+    name_y                = 32;
+    status_y              = 52;
+    circle_cy             = 27;
+    rect_y                = 60;
+    label_y               = 80;
+    height_padding        = 10;
 
+    $.each(servers, function(index, instance) {
+      if(index != 0) {
+        svg = d3.select('svg')
+          .attr('height', height_padding + inst_container_height * (index+1))
+          .node();
+        rect = d3.select('rect').node().cloneNode(true);
+        g = d3.select('g').node().cloneNode(true);
+
+        svg.appendChild(rect);
+        svg.appendChild(g);
+      }
+      
+      y_modifier = inst_container_height * index;
+      d3.selectAll('rect')[0][2*index]
+        .setAttribute('y', height_padding + y_modifier);
+      d3.selectAll('g')[0][index]
+        .setAttribute('id', 'text' + instance.id);
+
+      $('#text' + instance.id + ' .name')
+        .text(instance.name)
+        .attr('y', name_y + y_modifier);
+      $('#text' + instance.id + ' .status')
+        .text(instance.status)
+        .attr('y', status_y + y_modifier)
+      $('#text' + instance.id + ' circle')
+        .attr('cy', circle_cy + y_modifier)
+        .attr('class', instance.status);
+      $('#text' + instance.id + ' rect')
+        .attr('y', rect_y + y_modifier);
+      $('#text' + instance.id + ' .label')
+        .attr('y', label_y + y_modifier);
+/*
+// IF WE WANT THE DIAGRAM TO EXPAND HORIZONTALLY
     $.each(servers, function(index, instance) {
       if(index != 0) {
         svg = d3.select('svg')
@@ -57,6 +94,7 @@ $(document).ready(function(){
       $('#text' + instance.id + ' .uuid')
         .text(instance.id)
         .attr('x', inst_container_midpoint + inst_container_width * index);
+*/
     });
   });
 });
