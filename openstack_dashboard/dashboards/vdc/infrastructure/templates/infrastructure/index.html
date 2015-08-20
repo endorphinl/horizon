@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load url from future %}
+{% block title %}{% trans "Infrastructure" %}{% endblock %}
+
+{% block main %}
+
+<noscript>
+{% trans "This pane needs javascript support." %}
+</noscript>
+
+{% include "project/network_topology/client_side/_balloon_container.html" %}
+{% include "project/network_topology/client_side/_balloon_device.html" %}
+{% include "project/network_topology/client_side/_balloon_port.html" %}
+
+<div id="topologyCanvasContainer">
+  <div class="nodata">{% blocktrans %}There are no networks, routers, or connected instances to display.{% endblocktrans %}</div>
+  {% include "vdc/infrastructure/_svg_element.html" %}
+</div>
+<span data-networktopology="{% url 'horizon:vdc:infrastructure:json' %}" id="networktopology"></span>
+<div id="topologyMessages"></div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+  $.getJSON($('#networktopology').data('networktopology') + '?' + $.now(), function(data) {
+    servers                 = data.servers;
+    inst_container_width    = 420;
+    inst_container_midpoint = 210;
+    width_padding           = 10;
+
+    $.each(servers, function(index, instance) {
+      if(index != 0) {
+        svg = d3.select('svg')
+          .attr('width', width_padding + inst_container_width * (index+1))
+          .node();
+        rect = d3.select('rect').node().cloneNode(true);
+        g = d3.select('g').node().cloneNode(true);
+
+        svg.appendChild(rect);
+        svg.appendChild(g);
+      }
+
+      d3.selectAll('rect')[0][index]
+        .setAttribute('x', width_padding + inst_container_width * index);
+
+      d3.selectAll('g')[0][index]
+        .setAttribute('id', 'text' + instance.id);
+      d3.selectAll('g')[0][index]
+        .setAttribute('x', inst_container_width * index);
+
+      $('#text' + instance.id + ' .name')
+        .text(instance.name)
+        .attr('x', inst_container_midpoint + inst_container_width * index);
+      $('#text' + instance.id + ' .status')
+        .text(instance.status)
+        .attr('x', inst_container_midpoint + inst_container_width * index);
+      $('#text' + instance.id + ' .uuid')
+        .text(instance.id)
+        .attr('x', inst_container_midpoint + inst_container_width * index);
+    });
+  });
+});
+</script>
+{% endblock %}
